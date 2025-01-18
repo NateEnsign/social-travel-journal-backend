@@ -21,6 +21,11 @@ const signup = (req, res, next) => {
     const { name, email, password } = req.body;
     const newId = uuidv4();
 
+    const hasUser = DUMMY_USERS.find(u => u.email === email);
+    if (hasUser){
+        throw new HttpError('Could not create new account, email already in use.', 422)
+    }
+
     const createdUser = {
         id: newId,
         name: name,
