@@ -176,7 +176,7 @@ const deletePlace = async (req, res, next) => {
  
 let place;
 try {
-  place = await Place.findById(placeId);
+  place = await Place.findById(placeId).populate('creator'); //.pupulate allows you to refer to a document stored in another collection and work with that document
 } catch (err){
   const error = new HttpError(
     'Something went wrong, could not find place to delete.',
@@ -185,8 +185,20 @@ try {
   return next(error);
 }
 
+if (!place){
+  const error = new HttpError('Could not find a place for this id.', 404);
+  return next(error);
+}
+
+//code below is required to make it such that when a place is deleted, the placeId that is stored in the user array of places is removed from that user as well
 try {
-  await place.deleteOne();
+  const sesh = await mongoose.startSession();
+  sesh.startTransaction();
+  await place.deleteOne({ session: sesh});
+  place.creator.places.pull(place);
+  await place.creator.save({session: sesh});
+  await sesh.commitTransaction();
+
 } catch (err) {
   const error = new HttpError(
     'Something went wrong, could not delete place.',
