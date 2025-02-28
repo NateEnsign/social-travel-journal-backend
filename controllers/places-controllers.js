@@ -1,3 +1,4 @@
+const fs = require('fs');
 const { v4: uuidv4 } = require("uuid");
 const { validationResult } = require("express-validator");
 const mongoose = require('mongoose');
@@ -177,6 +178,9 @@ if (!place){
 }
 
 //code below is required to make it such that when a place is deleted, the placeId that is stored in the user array of places is removed from that user as well
+
+const imagePath = place.image;
+
 try {
   const sesh = await mongoose.startSession();
   sesh.startTransaction();
@@ -192,6 +196,11 @@ try {
   );
   return next(error);
 }
+
+fs.unlink(imagePath, err => {
+  console.log(err);
+});
+
   res.status(200).json({ message: "Deleted place." });
 };
 
