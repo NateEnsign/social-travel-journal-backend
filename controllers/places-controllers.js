@@ -185,6 +185,14 @@ if (!place){
   return next(error);
 }
 
+if (place.creator.id !== req.userData.userId){
+  const error = new HttpError(
+    'You are not allowed to delete this place.',
+    401
+  );
+  return next(error);
+}
+
 //code below is required to make it such that when a place is deleted, the placeId that is stored in the user array of places is removed from that user as well
 
 const imagePath = place.image;
